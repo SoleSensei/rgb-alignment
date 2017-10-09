@@ -1,7 +1,9 @@
 #pragma once
 
+#include <climits>
 #include "io.h"
 #include "matrix.h"
+
 
 
 Image align(Image srcImage, bool isPostprocessing, std::string postprocessingType, double fraction, bool isMirror, 

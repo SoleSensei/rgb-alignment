@@ -14,29 +14,32 @@ Image align(Image srcImage, bool isPostprocessing, std::string postprocessingTyp
             bool isInterp, bool isSubpixel, double subScale)
 {
     //split pic
-    auto part = srcImage.n_rows / 3;
-    Image b = srcImage.submatrix(0, 0, part, srcImage.n_cols);
-    Image g = srcImage.submatrix(part, 0, part, srcImage.n_cols);
-    Image r = srcImage.submatrix(2 * part, 0, part, srcImage.n_cols); 
+    auto resImage = srcImage;
+    optShift GR_align;
+    optShift GB_align;
+    if ( (srcImage.n_rows > 900) && (srcImage.n_cols > 900) ) {
+        Pyramida pyr(srcImage,GR_align,GB_align);
+        pyr = calc_pyramid(pyr);
+        resImage =  pyr.res;
+        GR_align = pyr.GR;
+        GB_align = pyr.GB;
+    } else {
+    
+        optShift opt;
+        auto part = srcImage.n_rows / 3;
+        Image b = srcImage.submatrix(0, 0, part, srcImage.n_cols);
+        Image g = srcImage.submatrix(part, 0, part, srcImage.n_cols);
+        Image r = srcImage.submatrix(2 * part, 0, part, srcImage.n_cols); 
 
-    //optimal shift calc
-    const ssize_t limit = 18;
-    auto GR_align = optimalAlign(g, r, limit );
-    auto GB_align = optimalAlign(g, b, limit );
-    //imposition
-    for (ssize_t i = 0; i < r.n_rows; i++) {
-        for (ssize_t j = 0; j < r.n_cols; j++){ 
-            ssize_t v1,h1,v2,h2;
-            std::tie(v1,h1,v2,h2) = setBound(i,j,GR_align,GB_align,g);
-            g(i, j) = std::make_tuple(std::get<0>(r(v1, h1)), 
-                                      std::get<0>(g(i, j)),
-                                      std::get<0>(b(v2, h2)));
-        }
+        //optimal shift calc
+        const ssize_t limit = 18;
+        GR_align = optimalAlign(g, r, opt, limit);
+        GB_align = optimalAlign(g, b, opt, limit);
+        //imposition
+        resImage = imposition(GR_align,GB_align,r,g,b);
     }
-    
     //cut borders
-    auto resImage = imposition_cut(g,GR_align,GB_align);
-    
+    resImage = imposition_cut(resImage,GR_align,GB_align);
     //postprocessing
     if (isPostprocessing){
         if (postprocessingType == "--gray-world")
@@ -44,9 +47,9 @@ Image align(Image srcImage, bool isPostprocessing, std::string postprocessingTyp
         if (postprocessingType == "--autocontrast")
             resImage = autocontrast(resImage, fraction);
         //radius-frame processing from here
-        int radius_filter = 50; //frame = (2*filrer_radius+1)*(2*filrer_radius+1) 
+        int radius_filter = 1; //frame = (2*filrer_radius+1)*(2*filrer_radius+1) 
         if (isMirror)
-            resImage = mirror(resImage, radius_filter);
+             resImage = mirror(resImage, radius_filter);
         if (postprocessingType == "--unsharp")
                 resImage = unsharp(resImage);
         //crop mirrored parts
@@ -72,7 +75,7 @@ Image sobel_y(Image src_image) {
 }
 
 Image unsharp(Image src_image) {
-    std::cerr << "unsharp" << std::endl;
+    cerr << "unsharp" << endl;
     
     Matrix<double> kernel = {{-1.0/6.0, -2.0/3.0, -1.0/6.0},
                              {-2.0/3.0, 13.0/3.0, -2.0/3.0},
@@ -81,7 +84,7 @@ Image unsharp(Image src_image) {
 }
 
 Image gray_world(Image src_image) {
-    std::cerr << "gray-world" << std::endl;
+    cerr << "gray-world" << endl;
     double r_cl = 0;
     double b_cl = 0;
     double g_cl = 0;
@@ -106,19 +109,15 @@ Image gray_world(Image src_image) {
 }
 
 Image resize(Image src_image, double scale) {
-
-    
-
-    return src_image;
+    return calc_scale(src_image,scale);
 }
 
 Image custom(Image src_image, Matrix<double> kernel) {
-    
     return src_image.unary_map(unaryOp(kernel));  
 }
 
 Image autocontrast(Image src_image, double fraction) {
-    std::cerr << "autocontrst" << std::endl;
+    cerr << "autocontrst" << endl;
     double Ymin = 255;
     double Ymax = 0;
     double r_cl,g_cl,b_cl;
@@ -156,8 +155,7 @@ Image gaussian_separable(Image src_image, double sigma, int radius) {
 }
 
 Image median(Image src_image, int radius) {
-    std::cerr << "median " << radius << std::endl;
-    
+    cerr << "median " << radius << endl;
     return src_image.unary_map(Median(src_image,radius));
 }
 

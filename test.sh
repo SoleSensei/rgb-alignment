@@ -15,4 +15,18 @@ echo ----------- pic$N ------------
 
 done
 
+for N in 1 2 3 4 5 6
+do
+echo ----------- big-pic$N ------------
+./build/bin/align ../big/$N.bmp ../test/align/big/$N.bmp --align
+
+./build/bin/align ../test/align/big/$N.bmp ../test/gw/big/$N.bmp --gray-world
+./build/bin/align ../test/align/big/$N.bmp ../test/contrast/big/$N.bmp --autocontrast 0.2
+./build/bin/align ../test/align/big/$N.bmp ../test/sharp/big/$N.bmp --unsharp
+./build/bin/align ../test/align/big/$N.bmp ../test/median/1/big/$N.bmp --median
+./build/bin/align ../test/align/big/$N.bmp ../test/median/3/big/$N.bmp --median 3
+./build/bin/align ../test/align/big/$N.bmp ../test/median/10/big/$N.bmp --median 10
+
+done
+
 tar -cf ../test/solepics.tar ../test

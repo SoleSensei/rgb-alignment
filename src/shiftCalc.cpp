@@ -1,10 +1,9 @@
 #include <assert.h>
-#include <climits>
-
 
 #include "shiftCalc.hpp"
 
-unsigned long long varmax = ULLONG_MAX;
+using namespace std;
+
 
 tuple<uint,uint,uint> overflow_crop(const tuple<uint,uint,uint>& pix)
 {   
@@ -16,10 +15,49 @@ tuple<uint,uint,uint> overflow_crop(const tuple<uint,uint,uint>& pix)
     b = b < 0 ? 0 : (b > 255 ? 255 : b); 
                  
     return std::make_tuple(r,g,b);
+
 }
+
+tuple <ssize_t,ssize_t,ssize_t,ssize_t> setBound (ssize_t ver, ssize_t hor,
+                                                  const optShift& sh1,
+                                                  const optShift& sh2,
+                                                  const Image& pic)
+{
+    ssize_t rows = int( pic.n_rows-1 );
+    ssize_t cols = int( pic.n_cols-1 );
+
+    ssize_t vs1 = ((ver - sh1.ver) < 0) ? 0 : ver - sh1.ver;
+    vs1 = vs1 > rows ? rows : vs1;
+    ssize_t hs1 = ((hor - sh1.hor) < 0) ? 0 : hor - sh1.hor;
+    hs1 = hs1 > cols ? cols : hs1;
+    ssize_t vs2 = ((ver - sh2.ver) < 0) ? 0 : ver - sh2.ver;
+    vs2 = vs2 > rows ? rows : vs2;
+    ssize_t hs2 = ((hor - sh2.hor) < 0) ? 0 : hor - sh2.hor;
+    hs2 = hs2 > cols ? cols : hs2;
+
+    return std::make_tuple(vs1, hs1, vs2, hs2);
+}
+
+Image imposition(const optShift& GR_align,
+                 const optShift& GB_align,
+                 Image& r, Image& g, Image& b)
+{
+
+    for (ssize_t i = 0; i < g.n_rows; i++) {
+        for (ssize_t j = 0; j < g.n_cols; j++){ 
+            ssize_t v1,h1,v2,h2;
+            std::tie(v1,h1,v2,h2) = setBound(i,j,GR_align,GB_align,g);
+            g(i, j) = std::make_tuple(std::get<0>(r(v1, h1)), 
+                                      std::get<0>(g(i, j)),
+                                      std::get<0>(b(v2, h2)));
+        }
+    }
+    return g;
+}
+
 Image imposition_cut(const Image& pic,
-                                     const optShift& sh1,
-                                     const optShift& sh2)
+                     const optShift& sh1,
+                     const optShift& sh2)
 {
     uint prow = std::max({ssize_t(0), sh1.ver, sh2.ver}); 
     uint pcol = std::max({ssize_t(0), sh1.hor, sh2.hor}); 
@@ -109,32 +147,17 @@ void Median::quickSort(int arr[], int left, int right) const
         quickSort(arr, i, right);
 }
 
-tuple <ssize_t,ssize_t,ssize_t,ssize_t> setBound (ssize_t ver, ssize_t hor,
-                                                  const optShift& sh1,
-                                                  const optShift& sh2,
-                                                  const Image& pic)
-{
-    ssize_t rows = int( pic.n_rows-1 );
-    ssize_t cols = int( pic.n_cols-1 );
 
-    ssize_t vs1 = ((ver - sh1.ver) < 0) ? 0 : ver - sh1.ver;
-            vs1 = vs1 > rows ? rows : vs1;
-    ssize_t hs1 = ((hor - sh1.hor) < 0) ? 0 : hor - sh1.hor;
-            hs1 = hs1 > cols ? cols : hs1;
-    ssize_t vs2 = ((ver - sh2.ver) < 0) ? 0 : ver - sh2.ver;
-            vs2 = vs2 > rows ? rows : vs2;
-    ssize_t hs2 = ((hor - sh2.hor) < 0) ? 0 : hor - sh2.hor;
-            hs2 = hs2 > cols ? cols : hs2;
-
-    return make_tuple(vs1, hs1, vs2, hs2);
-}
 optShift optimalAlign(const Image& fixed,
                       const Image& moved,
+                      optShift opt, 
                       ssize_t limit)
 {
-    optShift opt{varmax,0,0};
-    for(ssize_t y = -limit; y <= limit; ++y) {
-        for(ssize_t x = -limit; x <= limit; ++x)
+    if (limit == 0) return opt;
+    auto shift_v = opt.ver;
+    auto shift_h = opt.hor;
+    for(ssize_t y = shift_v-limit; y <= shift_v+limit; ++y) {
+        for(ssize_t x = shift_h-limit; x <= shift_h+limit; ++x)
         {
             Image crop_fixed, crop_moved; //croped images after shift
             tie(crop_fixed, crop_moved) = shiftCrop(fixed, moved, y, x);
@@ -206,14 +229,42 @@ unsigned long long calc_crossCorrelation(const Image& img1,
     return res;
 }
 
+Pyramida calc_pyramid(Pyramida pyr) {
+    cerr << "pyramida" << endl;
+    pyr.level++;
+    double scale = 2;
+    Image oldPyr = pyr.res.deep_copy(); 
+    if (pyr.res.n_rows > 900) {
+        pyr.res = calc_scale(pyr.res,1/scale).deep_copy();
+        pyr = calc_pyramid(pyr);
+    }
+
+    auto part = oldPyr.n_rows / 3;
+    Image b = oldPyr.submatrix(0,0,part,oldPyr.n_cols).deep_copy();
+    Image g = oldPyr.submatrix(part,0,part,oldPyr.n_cols).deep_copy();
+    Image r = oldPyr.submatrix(part * 2,0,part,oldPyr.n_cols).deep_copy();
+
+    pyr.GR = optimalAlign(g, r, pyr.GR, pyr.limit);
+    pyr.GB = optimalAlign(g, b, pyr.GB, pyr.limit);
+    if (pyr.level == 1) 
+        pyr.res = imposition(pyr.GR, pyr.GB, r, g, b).deep_copy();
+
+    pyr.limit = pyr.limit * (1/scale);
+    pyr.GR = pyr.GR * scale;
+    pyr.GB = pyr.GB * scale;
+    pyr.level--;
+
+    return pyr;
+}
+
 Image mirror(const Image& src, const int radius)
 {
     std::cerr<<"mirror"<<std::endl;
     Image res{src.n_rows+2*radius, src.n_cols+2*radius};
     for(ssize_t i = 0; i < res.n_rows; ++i)
         for(ssize_t j = 0; j < res.n_cols; ++j){
-            auto x = i > src.n_rows-1 + radius ? 2*(src.n_rows-1)+radius - i : abs(radius - i);  
-            auto y = j > src.n_cols-1 + radius ? 2*(src.n_cols-1)+radius - j : abs(radius - j);  
+            auto x = i >= src.n_rows + radius ? 2*(src.n_rows-1)+radius - i : abs(radius - i);  
+            auto y = j >= src.n_cols + radius ? 2*(src.n_cols-1)+radius - j : abs(radius - j);  
             res(i,j) = src(x,y);
         }
 
@@ -246,3 +297,48 @@ tuple <uint,uint,uint> unaryOp::operator()(const Image& neighbourhood) const
     return overflow_crop(std::make_tuple(sr,sg,sb));
 } 
 
+Image calc_scale(const Image& src, const double scale)
+{
+    double x1,y1,x2,y2;
+    double frd, fgr, fbl;
+    double r1, g1, b1;    
+    double r2, g2, b2;    
+    double r3, g3, b3;    
+    double r4, g4, b4;
+    Image res(src.n_rows * scale, src.n_cols * scale);    
+    
+    for (uint i = 0; i < uint(src.n_rows * scale); i++)
+        for (uint j = 0; j < uint(src.n_cols * scale); j++) {
+            if (i >= src.n_rows * scale - scale) 
+                x1 = src.n_rows - 2;
+            else 
+                x1 = i / scale;
+            if (j >= src.n_cols * scale - scale)
+                y1 = src.n_cols - 2;
+            else  
+                y1 = j / scale;
+            
+            x2 = x1 + 1;
+            y2 = y1 + 1;
+            
+            double fracX = x1 - int(x1);
+            double fracY = y1 - int(y1);
+            
+            std::tie(r1,g1,b1) = src(x1,y1);
+            std::tie(r2,g2,b2) = src(x2,y1);
+            std::tie(r3,g3,b3) = src(x1,y2);
+            std::tie(r4,g4,b4) = src(x2,y2);
+
+            frd = (r1 * (1 - fracX) + r2 * fracX)*(1 - fracY) + (r3*(1 - fracX) + r4*fracX)*fracY;
+            fgr = (g1 * (1 - fracX) + g2 * fracX)*(1 - fracY) + (g3*(1 - fracX) + g4*fracX)*fracY;
+            fbl = (b1 * (1 - fracX) + b2 * fracX)*(1 - fracY) + (b3*(1 - fracX) + b4*fracX)*fracY;
+
+            frd = frd < 0 ? 0 : ( frd > 255 ? 255 : frd);
+            fgr = fgr < 0 ? 0 : ( fgr > 255 ? 255 : fgr); 
+            fbl = fbl < 0 ? 0 : ( fbl > 255 ? 255 : fbl); 
+
+            res(i,j) = make_tuple(frd,fgr,fbl);
+
+        }
+    return res;
+}
