@@ -18,6 +18,7 @@ Image align(Image srcImage, bool isPostprocessing, std::string postprocessingTyp
     optShift GR_align;
     optShift GB_align;
     if ( (srcImage.n_rows > 900) && (srcImage.n_cols > 900) ) {
+        cerr << "pyramida" << endl;        
         Pyramida pyr(srcImage,GR_align,GB_align);
         pyr = calc_pyramid(pyr);
         resImage =  pyr.res;

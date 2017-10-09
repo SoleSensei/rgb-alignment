@@ -230,24 +230,23 @@ unsigned long long calc_crossCorrelation(const Image& img1,
 }
 
 Pyramida calc_pyramid(Pyramida pyr) {
-    cerr << "pyramida" << endl;
     pyr.level++;
     double scale = 2;
-    Image oldPyr = pyr.res.deep_copy(); 
+    Image oldPyr = pyr.res; 
     if (pyr.res.n_rows > 900) {
-        pyr.res = calc_scale(pyr.res,1/scale).deep_copy();
+        pyr.res = calc_scale(pyr.res,1/scale);
         pyr = calc_pyramid(pyr);
     }
 
     auto part = oldPyr.n_rows / 3;
-    Image b = oldPyr.submatrix(0,0,part,oldPyr.n_cols).deep_copy();
-    Image g = oldPyr.submatrix(part,0,part,oldPyr.n_cols).deep_copy();
-    Image r = oldPyr.submatrix(part * 2,0,part,oldPyr.n_cols).deep_copy();
+    Image b = oldPyr.submatrix(0,0,part,oldPyr.n_cols);
+    Image g = oldPyr.submatrix(part,0,part,oldPyr.n_cols);
+    Image r = oldPyr.submatrix(part * 2,0,part,oldPyr.n_cols);
 
     pyr.GR = optimalAlign(g, r, pyr.GR, pyr.limit);
     pyr.GB = optimalAlign(g, b, pyr.GB, pyr.limit);
     if (pyr.level == 1) 
-        pyr.res = imposition(pyr.GR, pyr.GB, r, g, b).deep_copy();
+        pyr.res = imposition(pyr.GR, pyr.GB, r, g, b);
 
     pyr.limit = pyr.limit * (1/scale);
     pyr.GR = pyr.GR * scale;
