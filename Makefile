@@ -12,6 +12,7 @@ CXXFLAGS += -Werror -Wformat-security -Wignored-qualifiers -Winit-self \
 # Directories with source code
 SRC_DIR = src
 INCLUDE_DIR = include
+OUTPUT_DIR = test_pics/out
 
 BUILD_DIR = build
 OBJ_DIR = $(BUILD_DIR)/obj
@@ -96,6 +97,9 @@ clean:
 	make -C $(dir $(BRIDGE_MAKE)) -f $(notdir $(BRIDGE_MAKE)) clean
 	rm -rf $(BUILD_DIR) $(BRIDGE_INCLUDE_DIR) $(BRIDGE_LIBRARY_DIR)
 	rm -f bridge.touch
+rm:
+	sudo rm -rf $(OUTPUT_DIR)
+	
 
 # If you still have "WTF?!" feeling, try reading teaching book
 # by Mashechkin & Co. http://unicorn.ejudge.ru/instr.pdf
