@@ -118,7 +118,7 @@ Image custom(Image src_image, Matrix<double> kernel) {
 }
 
 Image autocontrast(Image src_image, double fraction) {
-    cerr << "autocontrst" << endl;
+    cerr << "autocontrast" << endl;
     double Ymin = 255;
     double Ymax = 0;
     double r_cl,g_cl,b_cl;
@@ -157,7 +157,10 @@ Image gaussian_separable(Image src_image, double sigma, int radius) {
 
 Image median(Image src_image, int radius) {
     cerr << "median " << radius << endl;
-    return src_image.unary_map(Median(src_image,radius));
+    src_image = mirror(src_image, radius);
+    src_image = src_image.unary_map(Median(src_image,radius));
+    return mirror_crop(src_image, radius); 
+    
 }
 
 

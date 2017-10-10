@@ -308,15 +308,8 @@ Image calc_scale(const Image& src, const double scale)
     
     for (uint i = 0; i < uint(src.n_rows * scale); i++)
         for (uint j = 0; j < uint(src.n_cols * scale); j++) {
-            if (i >= src.n_rows * scale - scale) 
-                x1 = src.n_rows - 2;
-            else 
-                x1 = i / scale;
-            if (j >= src.n_cols * scale - scale)
-                y1 = src.n_cols - 2;
-            else  
-                y1 = j / scale;
-            
+            x1 = i >= scale * (src.n_rows - 1) ? src.n_rows - 2 : i / scale;
+            y1 = j >= scale * (src.n_cols - 1) ? src.n_cols - 2 : j / scale;
             x2 = x1 + 1;
             y2 = y1 + 1;
             
