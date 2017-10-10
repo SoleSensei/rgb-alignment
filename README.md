@@ -1,7 +1,7 @@
 # Mashgraph #1
 Prokudin Gorskiy method of image processing. 
 Take 3 colored chanels: B,G,R 
-Align their imposition and get colored fhoto
+Align their imposition and get colored photo
 
 ## some filters
 
