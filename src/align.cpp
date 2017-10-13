@@ -1,7 +1,7 @@
-#include "align.h"
 #include <assert.h>
 #include <string>
 
+#include "mvc.h"
 #include "shiftCalc.hpp"
 
 using std::string;
@@ -10,7 +10,7 @@ using std::cerr;
 using std::endl;
 
 
-Image align(Image srcImage, bool isPostprocessing, std::string postprocessingType, double fraction, bool isMirror, 
+Image Modeler::align(Image srcImage, bool isPostprocessing, std::string postprocessingType, double fraction, bool isMirror, 
             bool isInterp, bool isSubpixel, double subScale)
 {
     //split pic
@@ -61,21 +61,21 @@ Image align(Image srcImage, bool isPostprocessing, std::string postprocessingTyp
 }
 
 
-Image sobel_x(Image src_image) {
+Image Modeler::sobel_x(Image src_image) {
     Matrix<double> kernel = {{-1, 0, 1},
                              {-2, 0, 2},
                              {-1, 0, 1}};
     return custom(src_image, kernel);
 }
 
-Image sobel_y(Image src_image) {
+Image Modeler::sobel_y(Image src_image) {
     Matrix<double> kernel = {{ 1,  2,  1},
                              { 0,  0,  0},
                              {-1, -2, -1}};
     return custom(src_image, kernel);
 }
 
-Image unsharp(Image src_image) {
+Image Modeler::unsharp(Image src_image) {
     cerr << "unsharp" << endl;
     
     Matrix<double> kernel = {{-1.0/6.0, -2.0/3.0, -1.0/6.0},
@@ -84,7 +84,7 @@ Image unsharp(Image src_image) {
     return custom(src_image,kernel);
 }
 
-Image gray_world(Image src_image) {
+Image Modeler::gray_world(Image src_image) {
     cerr << "gray-world" << endl;
     double r_cl = 0;
     double b_cl = 0;
@@ -109,15 +109,15 @@ Image gray_world(Image src_image) {
     return src_image;
 }
 
-Image resize(Image src_image, double scale) {
+Image Modeler::resize(Image src_image, double scale) {
     return calc_scale(src_image,scale);
 }
 
-Image custom(Image src_image, Matrix<double> kernel) {
+Image Modeler::custom(Image src_image, Matrix<double> kernel) {
     return src_image.unary_map(unaryOp(kernel));  
 }
 
-Image autocontrast(Image src_image, double fraction) {
+Image Modeler::autocontrast(Image src_image, double fraction) {
     cerr << "autocontrast" << endl;
     double Ymin = 255;
     double Ymax = 0;
@@ -147,15 +147,15 @@ Image autocontrast(Image src_image, double fraction) {
     return src_image;
 }
 
-Image gaussian(Image src_image, double sigma, int radius)  {
+Image Modeler::gaussian(Image src_image, double sigma, int radius)  {
     return src_image;
 }
 
-Image gaussian_separable(Image src_image, double sigma, int radius) {
+Image Modeler::gaussian_separable(Image src_image, double sigma, int radius) {
     return src_image;
 }
 
-Image median(Image src_image, int radius) {
+Image Modeler::median(Image src_image, int radius) {
     cerr << "median " << radius << endl;
     src_image = mirror(src_image, radius);
     src_image = src_image.unary_map(Median(src_image,radius));
@@ -164,14 +164,14 @@ Image median(Image src_image, int radius) {
 }
 
 
-Image median_linear(Image src_image, int radius) {
+Image Modeler::median_linear(Image src_image, int radius) {
     return src_image;
 }
 
-Image median_const(Image src_image, int radius) {
+Image Modeler::median_const(Image src_image, int radius) {
     return src_image;
 }
 
-Image canny(Image src_image, int threshold1, int threshold2) {
+Image Modeler::canny(Image src_image, int threshold1, int threshold2) {
     return src_image;
 }

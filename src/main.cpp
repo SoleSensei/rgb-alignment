@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <ctime>
 
-#include "control.hpp"
+#include "controler.hpp"
 #include "viewer.hpp"
 
 using std::string;
@@ -19,7 +19,7 @@ using std::numeric_limits;
 
 int main(int argc, char **argv)
 {
-    Control c; //mvc controler
+    Controler c; //mvc controler
     Viewer v(argc, argv);  //mvc viewer
     try {
         c.align_calc(argc, argv);
