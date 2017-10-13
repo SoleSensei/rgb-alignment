@@ -18,9 +18,24 @@ using std::cerr;
 using std::endl;
 using std::numeric_limits;
 
+class Viewer
+{
+    int argc;
+    char **argv;    
+    string state;
+public:
+    Viewer(int c, char** v);
+    Viewer(const Viewer& v);
+    Viewer& operator=(const Viewer& v);
+
+    void error(const string& s); //catch(error) 
+    void get_status() const; 
+    int upd_state(const string& s);
+};
+
+
 class Control
 {
-
     void print_help(const char* argv0);
     
     template<typename ValueType>
@@ -52,7 +67,3 @@ class Modeler
 
 };
 
-class Viewer
-{
-
-};

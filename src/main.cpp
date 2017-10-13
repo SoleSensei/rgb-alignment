@@ -19,13 +19,18 @@ using std::numeric_limits;
 
 int main(int argc, char **argv)
 {
+    Control c; //mvc controler
+    Viewer v(argc, argv);  //mvc viewer
     try {
-        Control c;
         c.align_calc(argc, argv);
-       
     } catch (const string &s) {
-        cerr << "Error: " << s << endl;
-        cerr << "For help type: " << endl << argv[0] << " --help" << endl;
+        v.error(s);
         return 1;
     }
+    catch (...)
+    {
+        v.error("unexpected");
+        return 1;
+    }
+    return 0;
 }
