@@ -9,6 +9,14 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+string Modeler::get_state() const
+{
+    return state;
+}
+void Modeler::set_state(const string& s)
+{
+    state = s;
+}
 
 Image Modeler::align(Image srcImage, bool isPostprocessing, std::string postprocessingType, double fraction, bool isMirror, 
             bool isInterp, bool isSubpixel, double subScale)

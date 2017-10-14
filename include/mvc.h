@@ -21,28 +21,42 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::numeric_limits;
+using std::vector;
 
-class Viewer
+//pure virtual function to viewers
+class Observer
 {
-    int argc;
-    char **argv;    
+public:
+    virtual void update() = 0;
+    virtual ~Observer(){}
+};
+
+//add/update observers to model 
+class Subject
+{
+    vector< class Observer* > views;
+public:
+    Subject(): views(0) {}
+    void add_view(Observer *obs)
+    {
+        views.push_back(obs);
+    }
+    void send_update()
+    {
+        for (uint i = 0; i < views.size(); i++)
+            views[i]->update();
+    }
+};
+
+//methods description in align.cpp
+class Modeler: public Subject
+{
     string state;
 public:
-    Viewer(int c, char** v);
-    Viewer(const Viewer& v);
-    Viewer& operator=(const Viewer& v);
-    
-    void error(const string& s); //catch(error) 
-    void get_status() const; 
-    int upd_state(const string& s);
-};    
-
-
-class Modeler
-{
-
-public:
-
+    //model methods
+    Modeler(): state("init") {}
+    string get_state() const;
+    void set_state(const string& s);
 
     //alignment
     Image align(Image srcImage, bool isPostprocessing, std::string postprocessingType, double fraction, bool isMirror, 
@@ -64,9 +78,29 @@ public:
 
 };
 
-class Controler
+
+//bond with model
+class ConsoleViewer: public Observer
 {
-    Modeler model;
+    int argc;
+    char **argv;    
+    // string state;
+    Modeler* model;
+public:
+    ConsoleViewer(int c, char** v, Modeler* m);
+    ConsoleViewer(const ConsoleViewer& v);
+    ConsoleViewer& operator=(const ConsoleViewer& v);
+
+    void update();
+    
+    void error(const string& s); //catch(error) 
+};    
+
+//bond with model and view
+class ConsoleControler
+{
+    Modeler* model;
+    ConsoleViewer* view;
 
     void print_help(const char* argv0);
     
@@ -80,14 +114,14 @@ class Controler
     void check_number(string val_name, ValueT val, ValueT from, ValueT to);
     
     void check_argc(int argc, int from, int to);
-    
-    Matrix<double> parse_kernel(string kernel);
-    
+
+    Matrix<double> parse_kernel(string kernel);    
+
     void parse_args(char **argv, int argc, bool *isPostprocessing, string *postprocessingType, double *fraction, bool *isMirror, 
                 bool *isInterp, bool *isSubpixel, double *subScale);
 
 public:            
-    
+    ConsoleControler(Modeler* m, ConsoleViewer* v);
     int align_calc(int argc, char** argv);
     
 };    

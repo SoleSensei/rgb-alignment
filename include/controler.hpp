@@ -18,8 +18,11 @@ using std::cerr;
 using std::endl;
 using std::numeric_limits;
 
-int Controler::align_calc(int argc, char** argv)
+ConsoleControler::ConsoleControler(Modeler* m, ConsoleViewer* v): model(m), view(v){}
+
+int ConsoleControler::align_calc(int argc, char** argv)
 {
+ try{
     check_argc(argc, 2, numeric_limits<int>::max());
     if (string(argv[1]) == "--help") {
         print_help(argv[0]);
@@ -32,24 +35,24 @@ int Controler::align_calc(int argc, char** argv)
     
     if (action == "--sobel-x") {
         check_argc(argc, 4, 4);
-        dst_image = model.sobel_x(src_image);
+        dst_image = model->sobel_x(src_image);
     } else if (action == "--sobel-y") {
         check_argc(argc, 4, 4);
-        dst_image = model.sobel_y(src_image);
+        dst_image = model->sobel_y(src_image);
     } else if (action == "--unsharp") {
         check_argc(argc, 4, 4);
-        dst_image = model.unsharp(src_image);
+        dst_image = model->unsharp(src_image);
     } else if (action == "--gray-world") {
         check_argc(argc, 4, 4);
-        dst_image = model.gray_world(src_image);
+        dst_image = model->gray_world(src_image);
     } else if (action == "--resize") {
         check_argc(argc, 5, 5);
         double scale = read_value<double>(argv[4]);
-        dst_image = model.resize(src_image, scale);
+        dst_image = model->resize(src_image, scale);
     }  else if (action == "--custom") {
         check_argc(argc, 5, 5);
         Matrix<double> kernel = parse_kernel(argv[4]);
-        dst_image = model.custom(src_image, kernel);
+        dst_image = model->custom(src_image, kernel);
     } else if (action == "--autocontrast") {
         check_argc(argc, 4, 5);
         double fraction = 0.0;
@@ -57,7 +60,7 @@ int Controler::align_calc(int argc, char** argv)
             fraction = read_value<double>(argv[4]);
             check_number("fraction", fraction, 0.0, 0.4);
         }
-        dst_image = model.autocontrast(src_image, fraction);
+        dst_image = model->autocontrast(src_image, fraction);
     } else if (action == "--gaussian" || action == "--gaussian-separable") {
         check_argc(argc, 5, 6);
         double sigma = read_value<double>(argv[4]);
@@ -68,9 +71,9 @@ int Controler::align_calc(int argc, char** argv)
             check_number("radius", radius, 1, numeric_limits<int>::max());
         }
         if (action == "--gaussian") {
-            dst_image = model.gaussian(src_image, sigma, radius);
+            dst_image = model->gaussian(src_image, sigma, radius);
         } else {
-            dst_image = model.gaussian_separable(src_image, sigma, radius);
+            dst_image = model->gaussian_separable(src_image, sigma, radius);
         }
     } else if (action == "--canny") {
         check_argc(6, 6, numeric_limits<int>::max());
@@ -80,7 +83,7 @@ int Controler::align_calc(int argc, char** argv)
         check_number("threshold2", threshold2, 0, 360);
         if (threshold1 >= threshold2)
             throw string("threshold1 must be less than threshold2");
-        dst_image = model.canny(src_image, threshold1, threshold2);
+        dst_image = model->canny(src_image, threshold1, threshold2);
     } else if (action == "--median" || action == "--median-linear" ||
                 action == "--median-const") {
         check_argc(argc, 4, 5);
@@ -90,11 +93,11 @@ int Controler::align_calc(int argc, char** argv)
             check_number("radius", radius, 1, numeric_limits<int>::max());
         }
         if (action == "--median") {
-            dst_image = model.median(src_image, radius);
+            dst_image = model->median(src_image, radius);
         } else if (action == "--median-linear") {
-            dst_image = model.median_linear(src_image, radius);
+            dst_image = model->median_linear(src_image, radius);
         } else {
-            dst_image = model.median_const(src_image, radius);
+            dst_image = model->median_const(src_image, radius);
         }
     } else if (action == "--align") {
         bool isPostprocessing = false, isInterp = false,
@@ -108,17 +111,25 @@ int Controler::align_calc(int argc, char** argv)
                 &isInterp, &isSubpixel, &subScale);                    
         }
      
-        dst_image = model.align(src_image, isPostprocessing, postprocessingType, fraction, isMirror, 
+        dst_image = model->align(src_image, isPostprocessing, postprocessingType, fraction, isMirror, 
             isInterp, isSubpixel, subScale);  
     } else {
         throw string("unknown action ") + action;
     }
     save_image(dst_image, argv[2]);
-
+    }catch(const string& s){
+        view->error(s);
+        return 1;
+    }
+    catch (...)
+    {
+        view->error("unexpected");
+        return 1;
+    }
     return 0;
 }
 
-void Controler::print_help(const char *argv0)
+void ConsoleControler::print_help(const char *argv0)
 {
     const char *usage =
 R"(where PARAMS are from list:
@@ -187,7 +198,7 @@ R"(where PARAMS are from list:
 }
 
 template<typename ValueType>
-ValueType Controler::read_value(string s)
+ValueType ConsoleControler::read_value(string s)
 {
     stringstream ss(s);
     ValueType res;
@@ -198,7 +209,7 @@ ValueType Controler::read_value(string s)
 }
 
 template<typename ValueType>
-bool Controler::check_value(string s)
+bool ConsoleControler::check_value(string s)
 {
     stringstream ss(s);
     ValueType res;
@@ -209,7 +220,7 @@ bool Controler::check_value(string s)
 }
 
 template<typename ValueT>
-void Controler::check_number(string val_name, ValueT val, ValueT from, ValueT to)
+void ConsoleControler::check_number(string val_name, ValueT val, ValueT from, ValueT to)
 {
     if (val < from)
         throw val_name + string(" is too small");
@@ -217,7 +228,7 @@ void Controler::check_number(string val_name, ValueT val, ValueT from, ValueT to
         throw val_name + string(" is too big");
 }
 
-void Controler::check_argc(int argc, int from, int to)
+void ConsoleControler::check_argc(int argc, int from, int to)
 {
     if (argc < from)
         throw string("too few arguments for operation");
@@ -226,13 +237,13 @@ void Controler::check_argc(int argc, int from, int to)
         throw string("too many arguments for operation");
 }
 
-Matrix<double> Controler::parse_kernel(string kernel)
+Matrix<double> ConsoleControler::parse_kernel(string kernel)
 {
     return Matrix<double>(0, 0);
     // Kernel parsing implementation here
 }
 
-void Controler::parse_args(char **argv, int argc, bool *isPostprocessing, string *postprocessingType, double *fraction, bool *isMirror, 
+void ConsoleControler::parse_args(char **argv, int argc, bool *isPostprocessing, string *postprocessingType, double *fraction, bool *isMirror, 
             bool *isInterp, bool *isSubpixel, double *subScale)
 {
     for (int i = 4; i < argc; i++) {
