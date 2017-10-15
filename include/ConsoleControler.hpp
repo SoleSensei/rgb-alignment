@@ -1,22 +1,6 @@
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <iostream>
-#include <fstream>
-#include <initializer_list>
-#include <limits>
-#include <unistd.h>
-#include <ctime>
-
 #include "mvc.h"
-
-using std::string;
-using std::stringstream;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::numeric_limits;
 
 ConsoleControler::ConsoleControler(Modeler* m, ConsoleViewer* v): model(m), view(v){}
 
@@ -25,12 +9,14 @@ int ConsoleControler::align_calc(int argc, char** argv)
  try{
     check_argc(argc, 2, numeric_limits<int>::max());
     if (string(argv[1]) == "--help") {
-        print_help(argv[0]);
+        view->print_help(argv[0]);
         return 0;
     }
 
     check_argc(argc, 4, numeric_limits<int>::max());
-    Image src_image = load_image(argv[1]), dst_image;
+    Image src_image = model->load(argv[1]), dst_image;
+    model->send_update();
+
     string action(argv[3]);
     
     if (action == "--sobel-x") {
@@ -116,7 +102,8 @@ int ConsoleControler::align_calc(int argc, char** argv)
     } else {
         throw string("unknown action ") + action;
     }
-    save_image(dst_image, argv[2]);
+    model->save(dst_image, argv[2]);
+    model->send_update();
     }catch(const string& s){
         view->error(s);
         return 1;
@@ -127,74 +114,6 @@ int ConsoleControler::align_calc(int argc, char** argv)
         return 1;
     }
     return 0;
-}
-
-void ConsoleControler::print_help(const char *argv0)
-{
-    const char *usage =
-R"(where PARAMS are from list:
-
---align [ (--gray-world or --unsharp or 
-           --autocontrast [<fraction>=0.0] or --white-balance) ||
-           
-           --subpixel [<k>=2.0] ||
-           
-           --bicubic-interp ||
-           
-           --mirror]
-    align images with different options: one of postprocessing functions,
-    subpixel accuracy, bicubic interpolation 
-    for scaling and mirroring for filtering
-
---gaussian <sigma> [<radius>=1]
-    gaussian blur of image, 0.1 < sigma < 100, radius = 1, 2, ...
-
---gaussian-separable <sigma> [<radius>=1]
-    same, but gaussian is separable
-
---sobel-x
-    Sobel x derivative of image
-
---sobel-y
-    Sobel y derivative of image
-
---unsharp
-    sharpen image
-
---gray-world
-    gray world color balancing
-
---autocontrast [<fraction>=0.0]
-    autocontrast image. <fraction> of pixels must be croped for robustness
-    
---white-balance
-    align white balance
-
---resize <scale>
-    resize image with factor scale. scale is real number > 0
-
---canny <threshold1> <threshold2>
-    apply Canny filter to grayscale image. threshold1 < threshold2,
-    both are in 0..360
-
---median [<radius>=1]
-    apply median filter to an image (quadratic time)
-
---median-linear [<radius>=1]
-    apply median filter to an image (linear time)
-    
---median-const [<radius>=1]
-    apply median filter to an image (const. time)
-    
---custom <kernel_string>
-    convolve image with custom kernel, which is given by kernel_string, example:
-    kernel_string = '1,2,3;4,5,6;7,8,9' defines kernel of size 3
-
-[<param>=default_val] means that parameter is optional.
-)";
-    cout << "Usage: " << argv0 << " <input_image_path> <output_image_path> "
-         << "PARAMS" << endl;
-    cout << usage;
 }
 
 template<typename ValueType>

@@ -13,8 +13,6 @@
 #include "io.h"
 #include "matrix.h"
 
-// #include "align.h"
-
 using std::string;
 using std::stringstream;
 using std::cout;
@@ -22,6 +20,7 @@ using std::cerr;
 using std::endl;
 using std::numeric_limits;
 using std::vector;
+using std::ofstream;
 
 //pure virtual function to viewers
 class Observer
@@ -34,7 +33,7 @@ public:
 //add/update observers to model 
 class Subject
 {
-    vector< class Observer* > views;
+    vector< class Observer* > views; //all viewers tracing model
 public:
     Subject(): views(0) {}
     void add_view(Observer *obs)
@@ -52,16 +51,31 @@ public:
 class Modeler: public Subject
 {
     string state;
+    void set_state(const string& s){
+        state = s;
+    }
 public:
-    //model methods
-    Modeler(): state("init") {}
-    string get_state() const;
-    void set_state(const string& s);
+    Modeler(): state("start initialization") {}
+    string get_state() const{
+        return state;
+    }
 
-    //alignment
+    //io images in io.cpp
+    Image load(const char* src){
+        set_state("Image loading");
+        Image tmp = load_image(src);
+        set_state("Image loaded");
+        return tmp;
+    }
+    void save(const Image& dst, const char* path){
+        set_state("Image saving");
+        save_image(dst, path);
+        set_state("Image saved");
+    }
+    //alignment in align.cpp
     Image align(Image srcImage, bool isPostprocessing, std::string postprocessingType, double fraction, bool isMirror, 
         bool isInterp, bool isSubpixel, double subScale);  
-    //filters
+    //filters in align.cpp and filters.cpp
     Image sobel_x(Image src_image);
     Image sobel_y(Image src_image);
     Image unsharp(Image src_image);
@@ -84,8 +98,8 @@ class ConsoleViewer: public Observer
 {
     int argc;
     char **argv;    
-    // string state;
     Modeler* model;
+    ofstream flog;    
 public:
     ConsoleViewer(int c, char** v, Modeler* m);
     ConsoleViewer(const ConsoleViewer& v);
@@ -93,6 +107,7 @@ public:
 
     void update();
     
+    void print_help(const char* argv0);
     void error(const string& s); //catch(error) 
 };    
 
@@ -102,8 +117,6 @@ class ConsoleControler
     Modeler* model;
     ConsoleViewer* view;
 
-    void print_help(const char* argv0);
-    
     template<typename ValueType>
     ValueType read_value(string s);
 

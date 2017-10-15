@@ -7,14 +7,14 @@
 #include <unistd.h>
 #include <ctime>
 
-#include "controler.hpp"
-#include "viewer.hpp"
+#include "ConsoleControler.hpp"
+#include "ConsoleViewer.hpp"
 
 int main(int argc, char **argv)
 {
     Modeler img;
-    ConsoleViewer view(argc, argv, &img);  //mvc viewer
-    ConsoleControler cc(&img,&view); //mvc controler
+    ConsoleViewer view(argc, argv, &img); 
+    ConsoleControler cc(&img,&view);
     auto return_value = cc.align_calc(argc, argv);
 
     return return_value;

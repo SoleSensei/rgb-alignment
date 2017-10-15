@@ -23,9 +23,11 @@ mkdir ./test_pics/out/median/1/big
 mkdir ./test_pics/out/median/3/big
 mkdir ./test_pics/out/median/10/big
 
+#start process
 for N in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 
 do
 echo ----------- pic$N ------------
+echo ----------- pic$N ------------ >> log.txt
 ./build/bin/align ./test_pics/in/small/$N.bmp ./test_pics/out/align/$N.bmp --align
 ./build/bin/align ./test_pics/in/small/$N.bmp ./test_pics/out/mirror/$N.bmp --align --mirror
 
@@ -41,6 +43,7 @@ done
 for N in 1 2 3 4 5 6
 do
 echo ----------- big-pic$N ------------
+echo ----------- big-pic$N ------------ >> log.txt
 ./build/bin/align ./test_pics/in/big/$N.bmp ./test_pics/out/align/big/$N.bmp --align
 
 ./build/bin/align ./test_pics/out/align/big/$N.bmp ./test_pics/out/gw/big/$N.bmp --gray-world
@@ -52,5 +55,6 @@ echo ----------- big-pic$N ------------
 
 done
 
+#archive result pics and remove additional files 
 #tar -cf ./test_pics/solepics.tar ./test_pics
 #make clean

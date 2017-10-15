@@ -258,7 +258,7 @@ Pyramida calc_pyramid(Pyramida pyr) {
 
 Image mirror(const Image& src, const int radius)
 {
-    std::cerr<<"mirror"<<std::endl;
+    // std::cerr<<"mirror"<<std::endl;
     Image res{src.n_rows+2*radius, src.n_cols+2*radius};
     for(ssize_t i = 0; i < res.n_rows; ++i)
         for(ssize_t j = 0; j < res.n_cols; ++j){
