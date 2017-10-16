@@ -4,6 +4,8 @@
 
 ConsoleViewer::ConsoleViewer(int c, char** v, Modeler* m): argc(c), argv(v), model(m), flog("log.txt", std::ios::app)
 {
+    flog << "----------session starts----------" << endl;
+    update();
     model->add_view(this);
 }
 ConsoleViewer::ConsoleViewer(const ConsoleViewer& v):  argc(v.argc), argv(v.argv), model(v.model), flog("log.txt", std::ios::app) {}
@@ -19,15 +21,22 @@ ConsoleViewer& ConsoleViewer::operator=(const ConsoleViewer& v)
 void ConsoleViewer::error(const string& s)
 {
     cerr << "Error: " << s << endl;
-    cerr << "For help type: " << endl << argv[0] << " --help" << endl;   
+    cerr << "For help type: " << endl << argv[0] << " --help" << endl;   \
+    flog << "Error: " << s << endl;
+    flog << "For help type: " << endl << argv[0] << " --help" << endl;   \
+    
 }
 
 void ConsoleViewer::update()
 {   
     const string state = model->get_state();
-    cout << "Current state: ";
+    std::time_t t = std::time(nullptr);
+    char timer[10];
+    std::strftime(timer, sizeof(timer), "%H:%M:%S", std::localtime(&t));
+
+    cout << timer << " | Current state: ";
     cout << state << endl;
-    flog << "Current state: ";
+    flog << timer << " | Current state: ";
     flog << state << endl;
 
 }

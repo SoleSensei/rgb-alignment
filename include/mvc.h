@@ -55,7 +55,7 @@ class Modeler: public Subject
         state = s;
     }
 public:
-    Modeler(): state("start initialization") {}
+    Modeler(): state("Start initialization") {}
     string get_state() const{
         return state;
     }

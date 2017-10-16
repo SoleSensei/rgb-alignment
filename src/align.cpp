@@ -2,7 +2,7 @@
 #include <string>
 
 #include "mvc.h"
-#include "shiftCalc.hpp"
+#include "filters.hpp"
 
 using std::string;
 using std::cout;
@@ -18,12 +18,12 @@ Image Modeler::align(Image srcImage, bool isPostprocessing, std::string postproc
     optShift GR_align;
     optShift GB_align;
     if ( (srcImage.n_rows > 900) && (srcImage.n_cols > 900) ) {
-        cerr << "pyramida" << endl; 
-        set_state("starts pyramid scaling");
+        // cerr << "pyramida" << endl; 
+        set_state("Starts pyramid scaling");
         send_update();       
         Pyramida pyr(srcImage,GR_align,GB_align);
         pyr = calc_pyramid(pyr);
-        set_state("pyramid scaling complete");
+        set_state("Pyramid scaling complete");
         send_update();  
         resImage =  pyr.res;
         GR_align = pyr.GR;
@@ -35,7 +35,7 @@ Image Modeler::align(Image srcImage, bool isPostprocessing, std::string postproc
         Image b = srcImage.submatrix(0, 0, part, srcImage.n_cols);
         Image g = srcImage.submatrix(part, 0, part, srcImage.n_cols);
         Image r = srcImage.submatrix(2 * part, 0, part, srcImage.n_cols); 
-        set_state("image splitted up into color channels");
+        set_state("Image splitted up into color channels");
         send_update();
         //optimal shift calc
         set_state("starts channels alignment");
@@ -44,14 +44,14 @@ Image Modeler::align(Image srcImage, bool isPostprocessing, std::string postproc
         GB_align = optimalAlign(g, b, opt, limit);
         //imposition
         resImage = imposition(GR_align,GB_align,r,g,b);
-        set_state("channels alignment complete");
+        set_state("Channels alignment complete");
         send_update();
     }
     //cut borders
     resImage = imposition_cut(resImage,GR_align,GB_align);
     //postprocessing
     if (isPostprocessing){
-        set_state("starts postprocessing");
+        set_state("Starts postprocessing");
         send_update();
         if (postprocessingType == "--gray-world")
             resImage = gray_world(resImage);
@@ -87,21 +87,21 @@ Image Modeler::sobel_y(Image src_image) {
 
 Image Modeler::unsharp(Image src_image) {
     // cerr << "unsharp" << endl;
-    set_state("postprocessing::starts unsharping");
+    set_state("Postprocessing::starts unsharping");
     send_update();
     
     Matrix<double> kernel = {{-1.0/6.0, -2.0/3.0, -1.0/6.0},
                              {-2.0/3.0, 13.0/3.0, -2.0/3.0},
                              {-1.0/6.0, -2.0/3.0, -1.0/6.0}};
     Image tmp = custom(src_image,kernel);
-    set_state("postprocessing::unsharping complete");
+    set_state("Postprocessing::unsharping complete");
     send_update();
     return tmp;
 }
 
 Image Modeler::gray_world(Image src_image) {
     // cerr << "gray-world" << endl;
-    set_state("postprocessing::starts gray-world");
+    set_state("Postprocessing::starts gray-world");
     send_update();
     double r_cl = 0;
     double b_cl = 0;
@@ -123,7 +123,7 @@ Image Modeler::gray_world(Image src_image) {
                                                            std::get<1>(src_image(i,j)) * (sum / g_cl),
                                                            std::get<2>(src_image(i,j)) * (sum / b_cl)));
         
-    set_state("postprocessing::gray-world complete");
+    set_state("Postprocessing::gray-world complete");
     send_update();
     
     return src_image;
@@ -139,7 +139,7 @@ Image Modeler::custom(Image src_image, Matrix<double> kernel) {
 
 Image Modeler::autocontrast(Image src_image, double fraction) {
     // cerr << "autocontrast" << endl;
-    set_state("postprocessing::starts autocontrast");
+    set_state("Postprocessing::starts autocontrast");
     send_update();
     double Ymin = 255;
     double Ymax = 0;
@@ -165,7 +165,7 @@ Image Modeler::autocontrast(Image src_image, double fraction) {
         
             src_image(i,j) = overflow_crop(std::make_tuple(fr, fg, fb));
         }
-    set_state("postprocessing::autocontrast complete");
+    set_state("Postprocessing::autocontrast complete");
     send_update();
     return src_image;
 }
@@ -180,11 +180,11 @@ Image Modeler::gaussian_separable(Image src_image, double sigma, int radius) {
 
 Image Modeler::median(Image src_image, int radius) {
     // cerr << "median " << radius << endl;
-    set_state("postprocessing::starts median");
+    set_state("Postprocessing::starts median");
     send_update();
     src_image = mirror(src_image, radius);
     src_image = src_image.unary_map(Median(src_image,radius));
-    set_state("postprocessing::median complete");
+    set_state("Postprocessing::median complete");
     send_update();
     return mirror_crop(src_image, radius); 
     

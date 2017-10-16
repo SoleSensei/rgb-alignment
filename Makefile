@@ -79,7 +79,7 @@ $(BIN_DIR)/matrix_example: $(OBJ_DIR)/matrix_example.o $(OBJ_DIR)/io.o bridge.to
 	$(CXX) $(CXXFLAGS) $(filter %.o, $^) -o $@ $(LDFLAGS)
 
 # added .o file
-$(BIN_DIR)/align: $(OBJ_DIR)/main.o $(OBJ_DIR)/io.o $(OBJ_DIR)/align.o $(OBJ_DIR)/shiftCalc.o bridge.touch
+$(BIN_DIR)/align: $(OBJ_DIR)/main.o $(OBJ_DIR)/io.o $(OBJ_DIR)/align.o $(OBJ_DIR)/filters.o bridge.touch
 	$(CXX) $(CXXFLAGS) $(filter %.o, $^) -o $@ $(LDFLAGS)
 
 # Pattern for generating dependency description files (*.d)
