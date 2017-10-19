@@ -19,4 +19,4 @@ Console & Graphical interfaces.
 
 MVC pattern.
 
-plugins system
+plugins manager
