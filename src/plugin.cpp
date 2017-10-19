@@ -1,4 +1,3 @@
-#include <dlfcn.h>
 #include <assert.h>
 
 #include "mvc.h"
@@ -8,37 +7,51 @@ string Plugin::get_name()
     return name;
 }
 
-Library::Library(Modeler* m): names(), plugs(), loaded(0), model(m)
+Library::Library(Modeler* m): names(), libs(), plugs(), loaded(0), model(m)
 {
     for(uint i = 0; i < MAX_NUM_LIBS; ++i)
         plugs[i] = NULL;
 }
 
+int Library::find_libs(){
+    DIR *dp;
+    struct dirent *dirp;
+
+    if((dp  = opendir("./plugins")) == NULL) {
+    	model->buf += "Error(" + std::to_string(errno) + ") opening" + "./plugins" + "\n";
+        return errno;
+    }
+    int k = 0;
+    while ((dirp = readdir(dp)) != NULL) {
+        char *dot = strrchr(dirp->d_name, '.'); /* Find last '.', if there is one */
+        if (dot && (strcmp(dot, ".so") == 0))
+        {
+            libs[k] = string(dirp->d_name);
+            cout << libs[k++];
+        }
+    }    
+    if(closedir(dp) < 0)
+        return -1;
+    loaded = k;
+    return 0;
+}
+
 int Library::load_libs()
 {
-    // string file = 
+    find_libs(); 
     uint k = 0;
     void* handle;
-    handle = dlopen("./plugins/lib_gw.so", RTLD_LAZY);
-    if (handle){
-        plugs[k] = handle;
-        names[k++] = "gray-world";
+    for (int i=0; i<loaded; ++i){
+        string name = libs[i];        
+        string pathname = "./plugins/" + name;
+        handle = dlopen(pathname.c_str(), RTLD_LAZY);
+        if (handle){
+            plugs[k] = handle;
+            name = name.substr(4,name.size()-7);
+            names[k++] = name;
+        }
     }
-    handle = dlopen("./plugins/lib_median.so", RTLD_LAZY);
-    if (handle){
-        plugs[k] = handle;
-        names[k++] = "median";
-    }        
-    handle = dlopen("./plugins/lib_unsharp.so", RTLD_LAZY);
-    if (handle){
-        plugs[k] = handle;
-        names[k++] = "unsharp";
-    }   
-    handle = dlopen("./plugins/lib_autoc.so", RTLD_LAZY);
-    if (handle){
-        plugs[k] = handle;
-        names[k++] = "autocontrast";
-    }        
+
     loaded = k;
     return loaded;
 }

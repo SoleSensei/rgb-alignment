@@ -9,6 +9,12 @@
 #include <unistd.h>
 #include <ctime>
 #include <climits>
+#include <sys/types.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <dlfcn.h>
+#include <stdlib.h>
+#include <errno.h>
 
 #include "io.h"
 #include "matrix.h"

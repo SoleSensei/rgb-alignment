@@ -53,16 +53,18 @@ class Modeler;
 class Library
 {
     string names[MAX_NUM_LIBS];
+    string libs[MAX_NUM_LIBS];    
     void* plugs[MAX_NUM_LIBS];
     int loaded;
     Modeler* model;
 public:
     Library(Modeler* m);
-    Library(const Library& v): names(), plugs(), loaded(0), model(v.model) {}
+    Library(const Library& v): names(), libs(), plugs(), loaded(0), model(v.model) {}
     Library& operator=(const Library& v){return *this;}
     
     int load_libs();
     void print_loaded();
+    int find_libs();
     string choosen_filter(int num);
     Image do_plugin(Image, string& name, const int& r = 1, double fraction = 0.2);
 };
