@@ -137,6 +137,7 @@ Image Modeler::unsharp(Image src_image) {
     lb.print_loaded();
     string filter = "unsharp";
     Image dst = lb.do_plugin(src_image, filter);
+    send_update();    
     return dst;
 }
 
@@ -148,6 +149,7 @@ Image Modeler::gray_world(Image src_image) {
     lb.print_loaded();
     string filter = "gray-world";
     Image dst = lb.do_plugin(src_image, filter);
+    send_update();    
     return dst;
 }
 
@@ -167,6 +169,7 @@ Image Modeler::autocontrast(Image src_image, double fraction) {
     lb.print_loaded();
     string filter = "autocontrast";
     Image dst = lb.do_plugin(src_image, filter);
+    send_update();    
     return dst;
 }
 
@@ -178,6 +181,7 @@ Image Modeler::gaussian(Image src_image, double sigma, int radius)  {
     lb.print_loaded();
     string filter = "gaussian";
     Image dst = lb.do_plugin(src_image, filter, radius);
+    send_update();    
     return dst;
 }
 
@@ -189,6 +193,7 @@ Image Modeler::gaussian_separable(Image src_image, double sigma, int radius) {
     lb.print_loaded();
     string filter = "gaussian-separable";
     Image dst = lb.do_plugin(src_image, filter, radius);
+    send_update();    
     return dst;
 }
 
@@ -200,6 +205,7 @@ Image Modeler::median(Image src_image, int radius) {
     lb.print_loaded();
     string filter = "median";
     Image dst = lb.do_plugin(src_image, filter, radius);
+    send_update();    
     return dst;
 }
 
