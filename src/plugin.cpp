@@ -18,12 +18,12 @@ int Library::find_libs(){
     struct dirent *dirp;
 
     if((dp  = opendir("./plugins")) == NULL) {
-    	model->buf += "Error(" + std::to_string(errno) + ") opening" + "./plugins" + "\n";
-        return errno;
+    	model->buf += "Error: can't open ./plugins \n";
+        return 1;
     }
     int k = 0;
     while ((dirp = readdir(dp)) != NULL) {
-        char *dot = strrchr(dirp->d_name, '.'); /* Find last '.', if there is one */
+        char *dot = strrchr(dirp->d_name, '.'); 
         if (dot && (strcmp(dot, ".so") == 0))
         {
             libs[k] = string(dirp->d_name);
@@ -31,7 +31,7 @@ int Library::find_libs(){
         }
     }    
     if(closedir(dp) < 0)
-        return -1;
+        return 1;
     loaded = k;
     return 0;
 }
