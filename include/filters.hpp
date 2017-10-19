@@ -4,7 +4,6 @@
 
 const unsigned long long varmax = ULLONG_MAX;
 
-
 struct optShift 
 {
     uint64_t metric;
@@ -47,16 +46,6 @@ public:
     unaryOp(const Matrix<double>& ker): kernel(ker), radius((ker.n_rows-1)/2) {}
     std::tuple<uint,uint,uint> operator()(const Image& neighbourhood) const;
 
-};
-
-class Median
-{
-    Image pic;
-    void quickSort(int arr[], int left, int right) const;
-public:
-    const int radius;
-    Median(const Image& src, const int r): pic(src), radius(r) {}
-    std::tuple<uint,uint,uint> operator()(const Image& neighbourhood) const;
 };
 
 

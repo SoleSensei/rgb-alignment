@@ -19,7 +19,7 @@ int ConsoleControler::align_calc(int argc, char** argv)
     model->send_update();
 
     string action(argv[3]);
-    
+
     if (action == "--sobel-x") {
         check_argc(argc, 4, 4);
         dst_image = model->sobel_x(src_image);
@@ -86,20 +86,34 @@ int ConsoleControler::align_calc(int argc, char** argv)
         } else {
             dst_image = model->median_const(src_image, radius);
         }
-    } else if (action == "--align") {
-        bool isPostprocessing = false, isInterp = false,
-        isSubpixel = false, isMirror = false;
-        string postprocessingType;
-        
-        double fraction = 0.0, subScale = 2.0;
-        
-        if (argc >= 5) {
-            parse_args(argv, argc, &isPostprocessing, &postprocessingType, &fraction, &isMirror,
-                &isInterp, &isSubpixel, &subScale);                    
+    } else if (action == "--align" || action == "--filter") {
+        int loaded = 0;
+        if (action == "--filter") {
+            check_argc(argc,4,4);
+            loaded = model->search_filters();
+            if (loaded>0){
+                model->buf+="Choose filter: ";
+                model->send_update();
+                int num;
+                std::cin >> num;
+                dst_image = model->do_filter(src_image, num);
+            }
         }
-     
-        dst_image = model->align(src_image, isPostprocessing, postprocessingType, fraction, isMirror, 
-            isInterp, isSubpixel, subScale);  
+        if(loaded == 0 || model->get_state() == "align"){
+            bool isPostprocessing = false, isInterp = false,
+            isSubpixel = false, isMirror = false;
+            string postprocessingType;
+            
+            double fraction = 0.0, subScale = 2.0;
+            
+            if (argc >= 5) {
+                parse_args(argv, argc, &isPostprocessing, &postprocessingType, &fraction, &isMirror,
+                    &isInterp, &isSubpixel, &subScale);                    
+            }
+        
+            dst_image = model->align(src_image, isPostprocessing, postprocessingType, fraction, isMirror, 
+                isInterp, isSubpixel, subScale); 
+        } 
     } else {
         throw string("unknown action ") + action;
     }

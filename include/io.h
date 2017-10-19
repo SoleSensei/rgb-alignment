@@ -1,7 +1,7 @@
 #pragma once
 
 #include "matrix.h"
-#include "EasyBMP.h"
+#include "../externals/EasyBMP/include/EasyBMP.h"
 
 #include <tuple>
 

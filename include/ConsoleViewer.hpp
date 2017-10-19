@@ -29,16 +29,23 @@ void ConsoleViewer::error(const string& s)
 
 void ConsoleViewer::update()
 {   
-    const string state = model->get_state();
-    std::time_t t = std::time(nullptr);
-    char timer[10];
-    std::strftime(timer, sizeof(timer), "%H:%M:%S", std::localtime(&t));
+    string buf = model->buf;
+    if(!buf.empty())
+    {
+        cout << buf;
+        model->buf.clear();
+    }
+    else{
+        const string state = model->get_state();
+        std::time_t t = std::time(nullptr);
+        char timer[10];
+        std::strftime(timer, sizeof(timer), "%H:%M:%S", std::localtime(&t));
 
-    cout << timer << " | Current state: ";
-    cout << state << endl;
-    flog << timer << " | Current state: ";
-    flog << state << endl;
-
+        cout << timer << " | Current state: ";
+        cout << state << endl;
+        flog << timer << " | Current state: ";
+        flog << state << endl;
+    }
 }
 
 void ConsoleViewer::print_help(const char *argv0)

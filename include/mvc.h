@@ -12,11 +12,12 @@
 
 #include "io.h"
 #include "matrix.h"
+#include "plugin.hpp"
 
 using std::string;
 using std::stringstream;
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
 using std::numeric_limits;
 using std::vector;
@@ -47,34 +48,48 @@ public:
     }
 };
 
+class Modeler;
+
+class Library
+{
+    string names[MAX_NUM_LIBS];
+    void* plugs[MAX_NUM_LIBS];
+    int loaded;
+    Modeler* model;
+public:
+    Library(Modeler* m);
+    Library(const Library& v): names(), plugs(), loaded(0), model(v.model) {}
+    Library& operator=(const Library& v){return *this;}
+    
+    int load_libs();
+    void print_loaded();
+    string choosen_filter(int num);
+    Image do_plugin(Image, string& name, const int& r = 1, double fraction = 0.2);
+};
+
 //methods description in align.cpp
 class Modeler: public Subject
 {
     string state;
-    void set_state(const string& s){
-        state = s;
-    }
+    void set_state(const string& s);
 public:
-    Modeler(): state("Start initialization") {}
-    string get_state() const{
-        return state;
-    }
-
+    string buf;
+    Library lb; 
+    Modeler();
+    Modeler(const Modeler& v): state(), buf(), lb(this) {}
+    Modeler& operator=(const Modeler& v){return *this;}
+    string get_state() const;
+    
     //io images in io.cpp
-    Image load(const char* src){
-        set_state("Image loading");
-        Image tmp = load_image(src);
-        set_state("Image loaded");
-        return tmp;
-    }
-    void save(const Image& dst, const char* path){
-        set_state("Image saving");
-        save_image(dst, path);
-        set_state("Image saved");
-    }
+    Image load(const char* src);
+    void save(const Image& dst, const char* path);
+    
     //alignment in align.cpp
     Image align(Image srcImage, bool isPostprocessing, std::string postprocessingType, double fraction, bool isMirror, 
         bool isInterp, bool isSubpixel, double subScale);  
+    int search_filters();
+    Image do_filter(Image src, int num);
+    
     //filters in align.cpp and filters.cpp
     Image sobel_x(Image src_image);
     Image sobel_y(Image src_image);
@@ -89,21 +104,21 @@ public:
     Image median_linear(Image src_image, int radius);
     Image median_const(Image src_image, int radius);
     Image canny(Image src_image, int threshold1, int threshold2);
-
+        
 };
-
-
+    
+    
 //bond with model
 class ConsoleViewer: public Observer
-{
-    int argc;
-    char **argv;    
-    Modeler* model;
-    ofstream flog;    
-public:
-    ConsoleViewer(int c, char** v, Modeler* m);
-    ConsoleViewer(const ConsoleViewer& v);
-    ConsoleViewer& operator=(const ConsoleViewer& v);
+    {
+        int argc;
+        char **argv;    
+        Modeler* model;
+        ofstream flog;    
+    public:
+        ConsoleViewer(int c, char** v, Modeler* m);
+        ConsoleViewer(const ConsoleViewer& v);
+        ConsoleViewer& operator=(const ConsoleViewer& v);
 
     void update();
     

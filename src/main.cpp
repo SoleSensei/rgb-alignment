@@ -9,6 +9,9 @@
 
 #include "ConsoleControler.hpp"
 #include "ConsoleViewer.hpp"
+// #include "plugin.hpp"
+#include "mvc.h"
+
 
 int main(int argc, char **argv)
 {

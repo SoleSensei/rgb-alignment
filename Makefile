@@ -30,7 +30,7 @@ BRIDGE_LIBRARY_DIR = bridge/lib
 BRIDGE_TARGETS = easybmp
 
 # Link libraries gcc flag: library will be searched with prefix "lib".
-LDFLAGS = -leasybmp
+LDFLAGS = -leasybmp -ldl
 
 # Add headers dirs to gcc search path
 CXXFLAGS += -I $(INCLUDE_DIR) -I $(BRIDGE_INCLUDE_DIR)
@@ -79,7 +79,7 @@ $(BIN_DIR)/matrix_example: $(OBJ_DIR)/matrix_example.o $(OBJ_DIR)/io.o bridge.to
 	$(CXX) $(CXXFLAGS) $(filter %.o, $^) -o $@ $(LDFLAGS)
 
 # added .o file
-$(BIN_DIR)/align: $(OBJ_DIR)/main.o $(OBJ_DIR)/io.o $(OBJ_DIR)/align.o $(OBJ_DIR)/filters.o bridge.touch
+$(BIN_DIR)/align: $(OBJ_DIR)/main.o $(OBJ_DIR)/io.o $(OBJ_DIR)/align.o $(OBJ_DIR)/filters.o $(OBJ_DIR)/plugin.o bridge.touch
 	$(CXX) $(CXXFLAGS) $(filter %.o, $^) -o $@ $(LDFLAGS)
 
 # Pattern for generating dependency description files (*.d)
