@@ -2,10 +2,11 @@
 #include <assert.h>
 #include <string>
 
-#include "../include/mvc.h"
-#include "../include/filters.hpp"
 
-#include "../include/plugin.hpp"
+#include "../../include/mvc.h"
+#include "../../include/filters.hpp"
+
+#include "../../include/plugin.hpp"
 
 using std::string;
 using std::cerr;
@@ -113,6 +114,18 @@ void Median::quickSort(int arr[], int left, int right) const
     if (i < right)
         quickSort(arr, i, right);
 }
+
+string Plugin::get_name()
+{
+    return name; 
+}
+
+extern "C" string get_name()
+{
+    Plugin p;
+    return p.get_name();
+}
+
 
 Image Plugin::processing(Image src_image, const int radius, double fr) {
     cerr << "median " << radius << endl;

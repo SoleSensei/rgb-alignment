@@ -2,11 +2,6 @@
 
 #include "mvc.h"
 
-string Plugin::get_name()
-{
-    return name;
-}
-
 Library::Library(Modeler* m): names(), libs(), plugs(), loaded(0), model(m)
 {
     for(uint i = 0; i < MAX_NUM_LIBS; ++i)
@@ -42,12 +37,14 @@ int Library::load_libs()
     uint k = 0;
     void* handle;
     for (int i=0; i<loaded; ++i){
-        string name = libs[i];        
+        string name = libs[i];      cerr << libs[i] << endl;  
         string pathname = "./plugins/" + name;
         handle = dlopen(pathname.c_str(), RTLD_LAZY);
         if (handle){
             plugs[k] = handle;
-            name = name.substr(4,name.size()-7);
+            string (*get_name)();
+            get_name = reinterpret_cast<string (*)()>( dlsym(handle, "get_name") );
+            name = get_name();
             names[k++] = name;
         }
     }

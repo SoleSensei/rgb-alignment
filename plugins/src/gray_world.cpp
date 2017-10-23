@@ -2,10 +2,11 @@
 #include <assert.h>
 #include <string>
 
-#include "../include/mvc.h"
-#include "../include/filters.hpp"
 
-#include "../include/plugin.hpp"
+#include "../../include/mvc.h"
+#include "../../include/filters.hpp"
+
+#include "../../include/plugin.hpp"
 
 using std::string;
 using std::cerr;
@@ -22,6 +23,18 @@ extern "C" void destroy_object( Plugin* object )
 }
 
 Plugin::Plugin(): name("gray-world") {}
+
+string Plugin::get_name()
+{
+    return name; 
+}
+
+extern "C" string get_name()
+{
+    Plugin p;
+    return p.get_name();
+}
+
 
 Image Plugin::processing(Image src_image, const int radius, double fr){
     cerr << "gray-world" << endl;

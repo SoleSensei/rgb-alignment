@@ -15,8 +15,10 @@ Align their imposition and get colored photo
 6. Autocontrast
 
 # Prac #1
-Console & Graphical interfaces.
+Console interfaces.
 
 MVC pattern.
 
 plugins manager
+
+--filter flag added

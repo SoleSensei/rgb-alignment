@@ -32,7 +32,7 @@ public:
     
     string get_name();
     //do filter in library .so
-    virtual Image processing(Image, const int r, double fr);
+    virtual Image processing(Image, const int r = 1, double fr = 0.2);
     virtual ~Plugin(){}
     
 };

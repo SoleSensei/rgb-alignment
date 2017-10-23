@@ -2,10 +2,11 @@
 #include <assert.h>
 #include <string>
 
-#include "../include/mvc.h"
-#include "../include/filters.hpp"
 
-#include "../include/plugin.hpp"
+#include "../../include/mvc.h"
+#include "../../include/filters.hpp"
+
+#include "../../include/plugin.hpp"
 
 using std::string;
 using std::cerr;
@@ -22,13 +23,25 @@ extern "C" void destroy_object( Plugin* object )
   delete object;
 }
 
-Plugin::Plugin(): name("unsharp") {}
 
 Image custom(Image src_image, Matrix<double> kernel) {
     return src_image.unary_map(unaryOp(kernel));  
 }
 
-Image Plugin::processing(Image src_image, const int radius) {
+Plugin::Plugin(): name("unsharp") {}
+
+string Plugin::get_name()
+{
+    return name; 
+}
+
+extern "C" string get_name()
+{
+    Plugin p;
+    return p.get_name();
+}
+
+Image Plugin::processing(Image src_image, const int radius, double fraction) {
     cerr << "unsharping" << endl;
     
     Matrix<double> kernel = {{-1.0/6.0, -2.0/3.0, -1.0/6.0},
